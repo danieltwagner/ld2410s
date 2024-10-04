@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 import serial
 import struct
+import sys
 
 FRAME_HEAD = b'\xFD\xFC\xFB\xFA'
 FRAME_END = b'\x04\x03\x02\x01'
 GET_VERSION = FRAME_HEAD + b'\x02\x00' + b'\x00\x00' + FRAME_END
 
+CMD_ENABLE_CFG_SUCCESS = b'\xFF\x01'
+CMD_FW_VERSION_SUCCESS = b'\x00\x01'
+
 COMMAND_WORDS = {
-    b'\xFF\x01': 'enable config success',
-    b'\x00\x01': 'firmware version',
+    CMD_ENABLE_CFG_SUCCESS: 'enable config success',
+    CMD_FW_VERSION_SUCCESS: 'firmware version',
 }
 
 def unframe(buf):
@@ -33,7 +37,7 @@ def parse(data):
 
     ret = COMMAND_WORDS[data[0:2]]
 
-    if data[0:2] == b'\x00\x01':
+    if data[0:2] == CMD_FW_VERSION_SUCCESS:
         equipment_type = data[2:6]
         version_type = data[6:8]
         major, minor, patch = struct.unpack('<HHH', data[8:14])
@@ -41,11 +45,12 @@ def parse(data):
     return ret        
 
 
-def main():
+def main(dev: str):
+    print(f"Opening {dev}...")
     did_write = False
 
     buf = b''
-    with serial.Serial('/dev/ttyUSB0', 115200, timeout=1) as ser:
+    with serial.Serial(dev, 115200, timeout=1) as ser:
         ser.write(GET_VERSION)
         while True:
             buf += ser.read()
@@ -57,4 +62,5 @@ def main():
                     did_write = True
 
 if __name__ == '__main__':
-    main()
+    dev = sys.argv[1] if len(sys.argv) > 1 else '/dev/ttyUSB0'
+    main(dev)
