@@ -45,10 +45,22 @@ class LD2410s:
     @property
     def freq_status(self):
         return self._freq_status * 0.1
+    
+    @freq_status.setter
+    def freq_status(self, val: float):
+        if val < 0.5 or val > 8:
+            raise Exception(f"Value {val} out of range 0.5 - 8")
+        self._freq_status = int(val * 2)/2 # force it to be 0.5 increment
 
     @property
     def freq_distance(self):
         return self._freq_distance * 0.1
+    
+    @freq_distance.setter
+    def freq_distance(self, val: float):
+        if val < 0.5 or val > 8:
+            raise Exception(f"Value {val} out of range 0.5 - 8")
+        self._freq_distance = int(val * 2)/2 # force it to be 0.5 increment
 
     @property
     def distance_max(self):
